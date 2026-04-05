@@ -17,6 +17,51 @@ Use natural language without copying between CoPilot or ChatGPT
 wget -qO- https://autocomplete.sh/install.sh | bash
 ```
 
+## Install with Nix
+
+### Try it out
+
+```bash
+nix develop
+```
+
+This opens a shell with autocomplete.sh installed and enabled.
+
+### Install to your profile
+
+```bash
+nix profile install github:closedloop-technologies/autocomplete-sh
+```
+
+Then add to your `.bashrc`:
+
+```bash
+# ~/.bashrc
+source $(which autocomplete.sh) enable
+```
+
+Configure your LLM provider:
+
+```bash
+autocomplete.sh config set endpoint "https://your-api-endpoint.com/v1/chat/completions"
+autocomplete.sh config set openai_api_key "your-api-key"
+autocomplete.sh model
+```
+
+### Flake usage
+
+If you use flakes, add to your flake inputs:
+
+```nix
+inputs.autocomplete-sh.url = "github:closedloop-technologies/autocomplete-sh";
+```
+
+Then in your devShell:
+
+```nix
+(import inputs.autocomplete-sh).devShells.x86_64-linux.default
+```
+
 ## Features
 
 - **Context-Aware**: Considers terminal state, recent commands, and `--help` information

@@ -329,7 +329,11 @@ log_request() {
 
     created=$(date +%s)
     created=$(echo "$response_body" | jq -r ".created // $created")
-    api_cost=$(echo "$prompt_tokens_int * $ACSH_API_PROMPT_COST + $completion_tokens_int * $ACSH_API_COMPLETION_COST" | bc)
+    prompt_tokens_int=${prompt_tokens_int:-0}
+    completion_tokens_int=${completion_tokens_int:-0}
+    ACSH_API_PROMPT_COST=${ACSH_API_PROMPT_COST:-0}
+    ACSH_API_COMPLETION_COST=${ACSH_API_COMPLETION_COST:-0}
+    api_cost=$(echo "$prompt_tokens_int * $ACSH_API_PROMPT_COST + $completion_tokens_int * $ACSH_API_COMPLETION_COST" | bc -l)
     log_file=${ACSH_LOG_FILE:-"$HOME/.autocomplete/autocomplete.log"}
     echo "$created,$user_input_hash,$prompt_tokens_int,$completion_tokens_int,$api_cost" >> "$log_file"
 }
@@ -735,8 +739,8 @@ acsh_load_config() {
 }
 
 install_command() {
-    local bashrc_file="$HOME/.bashrc" autocomplete_setup="source autocomplete enable" autocomplete_cli_setup="complete -F _autocompletesh_cli autocomplete"
-    if ! command -v autocomplete &>/dev/null; then
+    local bashrc_file="$HOME/.bashrc" autocomplete_setup="source autocomplete.sh enable" autocomplete_cli_setup="complete -F _autocompletesh_cli autocomplete.sh"
+    if ! command -v autocomplete.sh &>/dev/null; then
         echo_error "autocomplete.sh not in PATH. Follow install instructions at https://github.com/closedloop-technologies/autocomplete-sh"
         return
     fi
@@ -783,14 +787,14 @@ remove_command() {
         fi
     fi
     if [ -f "$bashrc_file" ]; then
-        if grep -qF "source autocomplete enable" "$bashrc_file"; then
+        if grep -qF "source autocomplete.sh enable" "$bashrc_file"; then
             sed -i '/# Autocomplete.sh/d' "$bashrc_file"
             sed -i '/autocomplete/d' "$bashrc_file"
             echo "Removed autocomplete.sh setup from $bashrc_file"
         fi
     fi
     local autocomplete_script
-    autocomplete_script=$(command -v autocomplete)
+    autocomplete_script=$(command -v autocomplete.sh)
     if [ -n "$autocomplete_script" ]; then
         echo "Autocomplete script is at: $autocomplete_script"
         if [ "$1" == "-y" ]; then
@@ -912,7 +916,12 @@ usage_command() {
     else
         number_of_lines=$(wc -l < "$log_file")
         api_cost=$(awk -F, '{sum += $5} END {print sum}' "$log_file")
+        number_of_lines=${number_of_lines:-1}
+    if [ "$number_of_lines" -gt 0 ] 2>/dev/null; then
         avg_api_cost=$(echo "$api_cost / $number_of_lines" | bc -l)
+    else
+        avg_api_cost=0
+    fi
     fi
     echo
     echo -e "\tUsage count:\t\e[32m$number_of_lines\e[0m"

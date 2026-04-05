@@ -748,8 +748,8 @@ acsh_load_config() {
 }
 
 install_command() {
-    local bashrc_file="$HOME/.zshrc" autocomplete_setup="source autocomplete enable" autocomplete_cli_setup="compdef _autocompletesh_cli autocomplete"
-    if ! command -v autocomplete &>/dev/null; then
+    local bashrc_file="$HOME/.zshrc" autocomplete_setup="source autocomplete.zsh enable" autocomplete_cli_setup="compdef _autocompletesh_cli autocomplete.zsh"
+    if ! command -v autocomplete.zsh &>/dev/null; then
         echo_error "autocomplete.zsh not in PATH. Follow install instructions at https://github.com/closedloop-technologies/autocomplete-sh"
         return
     fi
@@ -796,14 +796,14 @@ remove_command() {
         fi
     fi
     if [ -f "$bashrc_file" ]; then
-        if grep -qF "source autocomplete enable" "$bashrc_file"; then
+        if grep -qF "source autocomplete.zsh enable" "$bashrc_file"; then
             sed -i '/# Autocomplete.zsh/d' "$bashrc_file"
             sed -i '/autocomplete/d' "$bashrc_file"
             echo "Removed autocomplete.zsh setup from $bashrc_file"
         fi
     fi
     local autocomplete_script
-    autocomplete_script=$(command -v autocomplete)
+    autocomplete_script=$(command -v autocomplete.zsh)
     if [ -n "$autocomplete_script" ]; then
         echo "Autocomplete script is at: $autocomplete_script"
         # In zsh, -p is not supported; use print -n then read.
